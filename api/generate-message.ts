@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { OpenAI } from 'openai';
 import type { GenerateMessageRequest, Answer } from '../types/api';
 import type { MessageLog } from '../types/supabase';
-import { withAuth } from '../utils/with-auth';
+import { withAuth } from '../utils/with-auth.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 

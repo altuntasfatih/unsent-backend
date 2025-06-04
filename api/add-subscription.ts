@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { AddSubscriptionRequest } from '../types/api';
 import type { Subscription, ProductType } from '../types/supabase';
 import { ProductEnum } from '../types/supabase';
-import { withAuth } from '../utils/with-auth';
+import { withAuth } from '../utils/with-auth.js';
 
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
 
