@@ -8,9 +8,9 @@
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "outDir": ".next",
+    "outDir": "dist",
     "allowJs": true
   },
-  "include": ["api/**/*", "next-env.d.ts"],
+  "include": ["api/**/*", "utils/**/*", "types/**/*", "next-env.d.ts"],
   "exclude": ["node_modules"]
 } 
