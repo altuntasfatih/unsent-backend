@@ -1,18 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
+import type { AddSubscriptionRequest } from '../types/api';
+import type { Subscription, ProductType } from '../types/supabase';
+import { ProductEnum } from '../types/supabase';
+import { withAuth } from '../utils/with-auth';
 
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
 
-function calculateExpiry(product: string): string {
+function calculateExpiry(product: ProductType): string {
   const now = new Date();
   let daysToAdd = 0;
   switch (product) {
-    case 'com.unsentpro.weekly':
+    case ProductEnum.Weekly:
       daysToAdd = 7;
       break;
-    case 'com.unsentpro.monthly':
+    case ProductEnum.Monthly:
       daysToAdd = 30;
       break;
-    case 'com.unsentpro.yearly':
+    case ProductEnum.Yearly:
       daysToAdd = 365;
       break;
     default:
@@ -23,33 +27,33 @@ function calculateExpiry(product: string): string {
   return expireDate.toISOString();
 }
 
-export default async function handler(req: any, res: any) {
+async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { user_id, product, price, currency } = req.body || {};
+  const { user_id, product, price, currency } = req.body as AddSubscriptionRequest || {};
   if (!user_id || !product || !price || !currency) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   let expires_at: string;
   try {
-    expires_at = calculateExpiry(product);
+    expires_at = calculateExpiry(product as ProductType);
   } catch (err: any) {
     return res.status(400).json({ error: err.message });
   }
 
-  const { error } = await supabase.from('subscription').insert([
-    {
-      user_id,
-      product,
-      price,
-      currency,
-      is_active: true,
-      expires_at,
-    },
-  ]);
+  const newSubscription: Subscription = {
+    user_id,
+    product: product as ProductType,
+    price,
+    currency,
+    is_active: true,
+    expires_at,
+  };
+
+  const { error } = await supabase.from('subscription').insert([newSubscription]);
 
   if (error) {
     return res.status(500).json({ error: error.message });
@@ -57,3 +61,5 @@ export default async function handler(req: any, res: any) {
 
   return res.status(200).json({ success: true, expires_at });
 }
+
+export default withAuth(handler);

@@ -1,16 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
+import { ProductEnum } from '../types/supabase';
+import { withAuth } from '../utils/with-auth';
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 function calculateExpiry(product) {
     const now = new Date();
     let daysToAdd = 0;
     switch (product) {
-        case 'com.unsentpro.weekly':
+        case ProductEnum.Weekly:
             daysToAdd = 7;
             break;
-        case 'com.unsentpro.monthly':
+        case ProductEnum.Monthly:
             daysToAdd = 30;
             break;
-        case 'com.unsentpro.yearly':
+        case ProductEnum.Yearly:
             daysToAdd = 365;
             break;
         default:
@@ -20,7 +22,7 @@ function calculateExpiry(product) {
     expireDate.setHours(23, 59, 59, 999);
     return expireDate.toISOString();
 }
-export default async function handler(req, res) {
+async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -35,18 +37,18 @@ export default async function handler(req, res) {
     catch (err) {
         return res.status(400).json({ error: err.message });
     }
-    const { error } = await supabase.from('subscription').insert([
-        {
-            user_id,
-            product,
-            price,
-            currency,
-            is_active: true,
-            expires_at,
-        },
-    ]);
+    const newSubscription = {
+        user_id,
+        product: product,
+        price,
+        currency,
+        is_active: true,
+        expires_at,
+    };
+    const { error } = await supabase.from('subscription').insert([newSubscription]);
     if (error) {
         return res.status(500).json({ error: error.message });
     }
     return res.status(200).json({ success: true, expires_at });
 }
+export default withAuth(handler);
