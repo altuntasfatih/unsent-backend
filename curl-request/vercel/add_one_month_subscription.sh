@@ -5,9 +5,13 @@ curl -X POST "http://localhost:3000/api/add-subscription" \
   -d @- <<EOF
 {
   "user_id": "test_user",
-  "product": "one_month_subscription",
-  "platform": "ios",
+  "product": "com.unsentpro.monthly",
   "price": 4.99,
-  "currency": "USD"
+  "currency": "USD",
+  "platform": "ios",
+  "transaction_id": "1000000123456789",
+  "original_transaction_id": "1000000123456789",
+  "purchase_date": "2024-01-15T10:30:00Z",
+  "environment": "sandbox"
 }
 EOF

@@ -1,5 +1,7 @@
 import { SignJWT, importPKCS8 } from 'jose';
 
+const log = console.log;
+
 // Constants
 const APPLE_API_ENDPOINTS = {
   production: 'https://api.storekit.itunes.apple.com',
@@ -40,6 +42,28 @@ export interface AppleValidationResult {
   isValid: boolean;
   error?: string;
   transactionInfo?: AppleTransactionInfo;
+}
+
+export interface SubscriptionValidationRequest {
+  user_id: string;
+  product: string;
+  price: number;
+  currency: string;
+  platform?: string;
+  transaction_id?: string;
+  original_transaction_id?: string;
+  purchase_date?: string;
+  environment?: string;
+}
+
+export interface ValidationResult {
+  isValid: boolean;
+  error?: string;
+  processedData?: {
+    shouldValidateApple: boolean;
+    validationPassed: boolean;
+    transactionInfo?: AppleTransactionInfo;
+  };
 }
 
 function getAppleCredentials(): AppleCredentials {
@@ -161,7 +185,7 @@ export async function validateAppleTransaction(
       return { isValid: false, error: 'Invalid environment. Must be "production" or "sandbox"' };
     }
 
-    console.log(`Validating transaction ${transactionId} using App Store Server API in ${environment} environment`);
+    log(`Validating transaction ${transactionId} using App Store Server API in ${environment} environment`);
 
     // Get credentials and generate JWT
     const credentials = getAppleCredentials();
@@ -171,7 +195,7 @@ export async function validateAppleTransaction(
     const baseUrl = APPLE_API_ENDPOINTS[environment];
     const url = `${baseUrl}/inApps/v1/transactions/${transactionId}`;
 
-    console.log('Calling Apple Store Server API...');
+    log('Calling Apple Store Server API...');
     
     // Make API request
     const response = await fetch(url, {
@@ -182,7 +206,7 @@ export async function validateAppleTransaction(
       },
     });
 
-    console.log('Apple API response status:', response.status);
+    log('Apple API response status:', response.status);
 
     // Handle non-OK responses
     if (!response.ok) {
@@ -199,7 +223,7 @@ export async function validateAppleTransaction(
       };
     }
 
-    console.log('Transaction found and validated successfully');
+    log('Transaction found and validated successfully');
     
     // Parse transaction info from JWS
     const transactionInfo = parseJWS(data.signedTransactionInfo);
@@ -225,4 +249,71 @@ export async function validateAppleTransaction(
   }
 }
 
+// Comprehensive subscription validation (includes Apple validation when needed)
+export async function validateSubscriptionRequest(
+  request: SubscriptionValidationRequest
+): Promise<ValidationResult> {
+  try {
+    // Basic field validation
+    const { user_id, product, price, currency, platform, transaction_id, environment } = request;
+    
+    if (!user_id || !product || !price || !currency) {
+      return { 
+        isValid: false, 
+        error: 'Missing required fields: user_id, product, price, currency' 
+      };
+    }
+
+    // Check if Apple validation is needed
+    const shouldValidateApple = platform?.toLowerCase() === 'ios';
+    
+    if (shouldValidateApple) {
+      // Validate required Apple fields
+      if (!transaction_id || !environment) {
+        return { 
+          isValid: false, 
+          error: 'Missing required iOS fields: transaction_id, environment' 
+        };
+      }
+
+      // Perform Apple transaction validation
+      log(`Performing Apple validation for transaction: ${transaction_id}`);
+      const appleValidation = await validateAppleTransaction(transaction_id, environment);
+      
+      if (!appleValidation.isValid) {
+        return { 
+          isValid: false, 
+          error: `Apple transaction validation failed: ${appleValidation.error}` 
+        };
+      }
+
+      log('Apple transaction validated successfully:', transaction_id);
+      
+      return {
+        isValid: true,
+        processedData: {
+          shouldValidateApple: true,
+          validationPassed: true,
+          transactionInfo: appleValidation.transactionInfo
+        }
+      };
+    }
+
+    // Non-iOS platform - basic validation only
+    return {
+      isValid: true,
+      processedData: {
+        shouldValidateApple: false,
+        validationPassed: true
+      }
+    };
+
+  } catch (error) {
+    console.error('Subscription validation error:', error);
+    return { 
+      isValid: false, 
+      error: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
+    };
+  }
+}
 

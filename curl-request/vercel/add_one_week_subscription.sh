@@ -8,6 +8,10 @@ curl -X POST "https://unsent-backend-lyart.vercel.app/api/add-subscription" \
   "product": "one_week_subscription",
   "platform": "ios",
   "price": 2.99,
-  "currency": "USD"
+  "currency": "USD",
+  "transaction_id": "1000000123456789",
+  "original_transaction_id": "1000000123456789",
+  "purchase_date": "2024-01-15T10:30:00Z",
+  "environment": "sandbox"
 }
 EOF

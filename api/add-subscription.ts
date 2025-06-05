@@ -10,6 +10,8 @@ import { addSubscription, getActiveSubscriptionByTransactionId } from '../utils/
 import { validateAppleTransaction } from '../utils/apple-validation.js';
 import { sendSuccessResponse, sendErrorResponse } from '../utils/response-helpers.js';
 
+const log = console.log;
+
 function calculateExpiry(purchaseDate: Date, product: ProductType): Date {
   let daysToAdd = 0;
   
@@ -72,7 +74,7 @@ async function handler(req: any, res: any) {
     const existingSubscription = await getActiveSubscriptionByTransactionId(transaction_id);
     
     if (existingSubscription) {
-      console.log('Returning existing active subscription for transaction:', transaction_id);
+      log('Returning existing active subscription for transaction:', transaction_id);
       return sendSuccessResponse<AddSubscriptionResponse>(
         res,
         { subscription: existingSubscription },
@@ -90,7 +92,7 @@ async function handler(req: any, res: any) {
       );
     }
 
-    console.log('Apple transaction validated successfully:', transaction_id);
+    log('Apple transaction validated successfully:', transaction_id);
   }
 
   // Calculate subscription expiry date
