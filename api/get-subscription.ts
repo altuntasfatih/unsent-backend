@@ -1,5 +1,5 @@
-import { withAuth } from '../utils/with-auth.js';
-import { getSubscription } from '../utils/supabase.js';
+import { withAuth } from '../utils/with-auth';
+import { getSubscription } from '../utils/supabase';
 
 async function handler(req: any, res: any) {
   if (req.method !== 'GET') {

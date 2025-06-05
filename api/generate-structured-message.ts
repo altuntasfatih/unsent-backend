@@ -1,4 +1,4 @@
-import type { GenerateStructuredMessageRequest, Answer, Prompts } from '../types/api.js';
+import type { GenerateStructuredMessageRequest, Answer, Prompts } from '../types/types.js';
 import { withAuth } from '../utils/with-auth.js';
 import { validateSubscription, logMessage, createLogEntry } from '../utils/supabase.js';
 import { generateMessageWithAI } from '../utils/openai.js';

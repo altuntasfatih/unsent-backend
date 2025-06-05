@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import type { MessageLog, Subscription } from '../types/supabase';
+import type { MessageLog, Subscription } from '../types/types.js';
 
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
 
@@ -16,7 +16,11 @@ export async function addSubscription(subscription: Subscription): Promise<{ err
 }
 
 export async function validateSubscription(userId: string): Promise<void> {
-  const { data: subscription, error: subError } = await getSubscription(userId);
+  const { data: subscription, error: subError } = await supabase
+    .from('subscription')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle();
 
   if (subError) {
     throw new Error(`Subscription check failed: ${subError.message}`);

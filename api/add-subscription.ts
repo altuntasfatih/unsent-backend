@@ -1,6 +1,5 @@
-import type { AddSubscriptionRequest } from '../types/api.js';
-import type { Subscription, ProductType } from '../types/supabase.js';
-import { ProductEnum } from '../types/supabase.js';
+import type { AddSubscriptionRequest, Subscription, ProductType } from '../types/types.js';
+import { ProductEnum } from '../types/types.js';
 import { withAuth } from '../utils/with-auth.js';
 import { addSubscription } from '../utils/supabase.js';
 
@@ -11,7 +10,7 @@ function calculateExpiry(product: ProductType): string {
     case ProductEnum.Weekly:
       daysToAdd = 7;
       break;
-    case ProductEnum.Monthly:
+    case ProductEnum.Monthly: 
       daysToAdd = 30;
       break;
     case ProductEnum.Yearly:
