@@ -1,9 +1,10 @@
-import type { GenerateCustomMessageRequest, Prompts } from '../types/types.js';
+import type { GenerateCustomMessageRequest, GenerateCustomMessageResponse, Prompts } from '../types/types.js';
 import { withAuth } from '../utils/with-auth.js';
 import { generateMessageWithAI } from '../utils/openai.js';
 import { validateSubscription, logMessage, createLogEntry } from '../utils/supabase.js';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { sendSuccessResponse, sendErrorResponse } from '../utils/response-helpers.js';
 
 // Utility functions
 async function getPrompts(): Promise<Prompts> {
@@ -24,12 +25,21 @@ function formatUserPrompt(structure: string, body: GenerateCustomMessageRequest)
 // Main handler
 async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return sendErrorResponse<GenerateCustomMessageResponse>(
+      res,
+      'Method not allowed',
+      undefined,
+      405
+    );
   }
 
   const { user_id, device_id } = req.body as GenerateCustomMessageRequest || {};
   if (!user_id) {
-    return res.status(400).json({ error: 'Missing user_id' });
+    return sendErrorResponse<GenerateCustomMessageResponse>(
+      res,
+      'Missing user_id',
+      'user_id is required to generate custom message'
+    );
   }
 
   try {
@@ -50,16 +60,23 @@ async function handler(req: any, res: any) {
     await logMessage(logEntry);
 
     // 5. Respond
-    return res.status(200).json({ 
-      input_prompt: formattedUserPrompt, 
-      generated_message: generatedMessage 
-    });
+    return sendSuccessResponse<GenerateCustomMessageResponse>(
+      res,
+      {
+        input_prompt: formattedUserPrompt,
+        generated_message: generatedMessage
+      },
+      'Message generated successfully'
+    );
 
   } catch (error: any) {
     const statusCode = error.message.includes('subscription') ? 403 : 500;
-    return res.status(statusCode).json({ 
-      error: error.message || 'An unexpected error occurred' 
-    });
+    return sendErrorResponse<GenerateCustomMessageResponse>(
+      res,
+      error.message || 'An unexpected error occurred',
+      statusCode === 403 ? 'Subscription validation failed' : 'Internal server error',
+      statusCode
+    );
   }
 }
 

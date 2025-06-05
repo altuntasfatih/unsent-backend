@@ -1,4 +1,4 @@
-import type { GenerateStructuredMessageRequest, Answer, Prompts } from '../types/types.js';
+import type { GenerateStructuredMessageRequest, GenerateStructuredMessageResponse, Answer, Prompts } from '../types/types.js';
 import { withAuth } from '../utils/with-auth.js';
 import { validateSubscription, logMessage, createLogEntry } from '../utils/supabase.js';
 import { generateMessageWithAI } from '../utils/openai.js';
@@ -40,7 +40,12 @@ async function handler(req: any, res: any) {
 
   const { user_id, device_id } = req.body as GenerateStructuredMessageRequest || {};
   if (!user_id) {
-    return res.status(400).json({ error: 'Missing user_id' });
+    const response: GenerateStructuredMessageResponse = {
+      success: false,
+      error: 'Missing user_id',
+      message: 'user_id is required to generate structured message'
+    };
+    return res.status(400).json(response);
   }
 
   try {
@@ -61,16 +66,22 @@ async function handler(req: any, res: any) {
     await logMessage(logEntry);
 
     // 5. Respond
-    return res.status(200).json({ 
-      input_prompt: formattedUserPrompt, 
-      generated_message: generatedMessage 
-    });
+    const response: GenerateStructuredMessageResponse = {
+      success: true,
+      input_prompt: formattedUserPrompt,
+      generated_message: generatedMessage,
+      message: 'Structured message generated successfully'
+    };
+    return res.status(200).json(response);
 
   } catch (error: any) {
     const statusCode = error.message.includes('subscription') ? 403 : 500;
-    return res.status(statusCode).json({ 
-      error: error.message || 'An unexpected error occurred' 
-    });
+    const response: GenerateStructuredMessageResponse = {
+      success: false,
+      error: error.message || 'An unexpected error occurred',
+      message: statusCode === 403 ? 'Subscription validation failed' : 'Internal server error'
+    };
+    return res.status(statusCode).json(response);
   }
 }
 

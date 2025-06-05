@@ -33,7 +33,38 @@ export type AddSubscriptionRequest = {
   product: string;
   price: number;
   currency: string;
+  platform: string;
+  transaction_id: string;
+  original_transaction_id: string;
+  purchase_date: string;
+  environment: string;
 };
+
+// Base API Response
+export interface BaseResponse {
+  success: boolean;
+  error?: string;
+  message?: string;
+}
+
+// Specific Response Types
+export interface AddSubscriptionResponse extends BaseResponse {
+  subscription?: Subscription;
+}
+
+export interface GenerateCustomMessageResponse extends BaseResponse {
+  input_prompt?: string;
+  generated_message?: string;
+}
+
+export interface GenerateStructuredMessageResponse extends BaseResponse {
+  input_prompt?: string;
+  generated_message?: string;
+}
+
+export interface GetSubscriptionResponse extends BaseResponse {
+  subscription?: Subscription;
+}
 
 // Supabase Types
 export type ProductType = 'com.unsentpro.weekly' | 'com.unsentpro.monthly' | 'com.unsentpro.yearly';
@@ -51,7 +82,12 @@ export type Subscription = {
   price: number;
   currency: string;
   is_active: boolean;
-  expires_at: string;
+  platform: string;
+  transaction_id: string;
+  original_transaction_id: string,
+  purchase_date: string;
+  environment: string;
+  expires_at: Date;
 };
 
 export type MessageLog = {

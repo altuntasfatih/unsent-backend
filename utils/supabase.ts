@@ -3,12 +3,26 @@ import type { MessageLog, Subscription } from '../types/types.js';
 
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
 
-export async function getSubscription(userId: string): Promise<{ data: Subscription | null; error: any }> {
-  return await supabase
+export async function getSubscription(userId: string): Promise<Subscription | null> {
+  const { data } = await supabase
     .from('subscription')
     .select('*')
     .eq('user_id', userId)
     .maybeSingle<Subscription>();
+  
+  return data;
+}
+
+export async function getActiveSubscriptionByTransactionId(transactionId: string): Promise<Subscription | null> {
+  const { data } = await supabase
+    .from('subscription')
+    .select('*')
+    .eq('transaction_id', transactionId)
+    .eq('is_active', true)
+    .gte('expires_at', new Date().toISOString())
+    .maybeSingle<Subscription>();
+  
+  return data;
 }
 
 export async function addSubscription(subscription: Subscription): Promise<{ error: any }> {
