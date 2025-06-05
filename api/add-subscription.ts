@@ -1,6 +1,6 @@
-import type { AddSubscriptionRequest } from '../types/api';
-import type { Subscription, ProductType } from '../types/supabase';
-import { ProductEnum } from '../types/supabase';
+import type { AddSubscriptionRequest } from '../types/api.js';
+import type { Subscription, ProductType } from '../types/supabase.js';
+import { ProductEnum } from '../types/supabase.js';
 import { withAuth } from '../utils/with-auth.js';
 import { addSubscription } from '../utils/supabase.js';
 
