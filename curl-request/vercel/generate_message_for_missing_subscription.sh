@@ -8,6 +8,7 @@ curl -X POST "https://unsent-backend-lyart.vercel.app/api/generate-message" \
   "messageType" : "Breakup",
   "additionalNotes" : "fuck you allison",
   "user_id": "dont_have_subscription",
+  "wordCount" : 150,
   "answers" : [
     {
       "question" : "What first attracted you to this person?",

@@ -1,4 +1,4 @@
-curl -X POST "https://unsent-backend-lyart.vercel.app/api/generate-message" \
+curl -X POST "https://unsent-backend-lyart.vercel.app/api/generate-structured-message" \
   -H "Content-Type: application/json" \
   -H "Authorization: 2f71a653-2d5c-4ce1-a231-f71e56c9bb77" \
   -H "device_id: 1234567890" \
@@ -7,7 +7,8 @@ curl -X POST "https://unsent-backend-lyart.vercel.app/api/generate-message" \
   "recipient" : "Allison",
   "messageType" : "Breakup",
   "additionalNotes" : "fuck you allison",
-  "user_id": "another_user",
+  "user_id": "test_user",
+  "wordCount": 100,
   "answers" : [
     {
       "question" : "What first attracted you to this person?",

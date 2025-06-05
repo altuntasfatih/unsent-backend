@@ -4,10 +4,10 @@ curl -X POST "https://unsent-backend-lyart.vercel.app/api/add-subscription" \
   -H "device_id: 1234567890" \
   -d @- <<EOF
 {
-  "user_id": "another_user",
-  "product": "com.unsentpro.yearly",
+  "user_id": "test_user",
+  "product": "one_month_subscription",
   "platform": "ios",
-  "price": 19.99,
+  "price": 4.99,
   "currency": "USD"
 }
 EOF
