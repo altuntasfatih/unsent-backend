@@ -1,10 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
 import type { AddSubscriptionRequest } from '../types/api';
 import type { Subscription, ProductType } from '../types/supabase';
 import { ProductEnum } from '../types/supabase';
 import { withAuth } from '../utils/with-auth.js';
-
-const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
+import { addSubscription } from '../utils/supabase.js';
 
 function calculateExpiry(product: ProductType): string {
   const now = new Date();
@@ -53,7 +51,7 @@ async function handler(req: any, res: any) {
     expires_at,
   };
 
-  const { error } = await supabase.from('subscription').insert([newSubscription]);
+  const { error } = await addSubscription(newSubscription);
 
   if (error) {
     return res.status(500).json({ error: error.message });

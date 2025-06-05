@@ -1,8 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import type { Subscription } from '../types/supabase';
 import { withAuth } from '../utils/with-auth.js';
-
-const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
+import { getSubscription } from '../utils/supabase.js';
 
 async function handler(req: any, res: any) {
   if (req.method !== 'GET') {
@@ -14,11 +11,7 @@ async function handler(req: any, res: any) {
     return res.status(400).json({ error: 'Missing or invalid user_id' });
   }
 
-  const { data, error } = await supabase
-    .from('subscription')
-    .select('*')
-    .eq('user_id', user_id)
-    .maybeSingle<Subscription>();
+  const { data, error } = await getSubscription(user_id);
 
   if (error) {
     return res.status(500).json({ error: error.message });
@@ -27,7 +20,7 @@ async function handler(req: any, res: any) {
     return res.status(404).json({ error: 'Subscription not found' });
   }
 
-  return res.status(200).json({ success: true, subscription: data as Subscription });
+  return res.status(200).json({ success: true, subscription: data });
 }
 
 export default withAuth(handler);
