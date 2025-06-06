@@ -38,7 +38,7 @@ async function handler(req: any, res: any) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { user_id, device_id } = req.body as GenerateStructuredMessageRequest || {};
+  const { user_id } = req.body as GenerateStructuredMessageRequest || {};
   if (!user_id) {
 
     return res.status(400).json({
@@ -61,7 +61,7 @@ async function handler(req: any, res: any) {
     // 4. Log the interaction
     const ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || (req.socket as any)?.remoteAddress;
     const userAgent = req.headers['user-agent'];
-    const logEntry = createLogEntry(formattedUserPrompt, generatedMessage, user_id, userAgent, ip, device_id);
+    const logEntry = createLogEntry(formattedUserPrompt, generatedMessage, user_id, userAgent, ip);
     await logMessage(logEntry);
 
     // 5. Respond

@@ -118,7 +118,7 @@ async function handler(req: any, res: any) {
     is_active: true,
     platform,
     transaction_id,
-    original_transaction_id,
+    original_transaction_id: original_transaction_id,
     purchase_date,
     environment,
     expires_at: expiresAt,

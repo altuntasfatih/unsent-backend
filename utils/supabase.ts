@@ -58,14 +58,12 @@ export function createLogEntry(
   userId: string,
   userAgent: string,
   ip: string,
-  deviceId?: string
 ): MessageLog {
   return {
     input_prompt: userPrompt,
     generated_message: generatedMessage,
     ip,
     user_agent: userAgent,
-    device_id: deviceId ?? null,
     user_id: userId,
   };
 } 

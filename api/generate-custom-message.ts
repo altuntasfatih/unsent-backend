@@ -32,7 +32,7 @@ async function handler(req: any, res: any) {
     );
   }
 
-  const { user_id, device_id } = req.body as GenerateCustomMessageRequest || {};
+  const { user_id } = req.body as GenerateCustomMessageRequest || {};
   if (!user_id) {
     return sendErrorResponse<GenerateCustomMessageResponse>(
       res,
@@ -53,8 +53,7 @@ async function handler(req: any, res: any) {
 
     // 4. Log the interaction
     const ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || (req.socket as any)?.remoteAddress;
-    const userAgent = req.headers['user-agent'];
-    const logEntry = createLogEntry(formattedUserPrompt, generatedMessage, user_id, userAgent, ip, device_id);
+    const logEntry = createLogEntry(formattedUserPrompt, generatedMessage, user_id,  req.headers['user-agent'], ip);
     await logMessage(logEntry);
 
     // 5. Respond

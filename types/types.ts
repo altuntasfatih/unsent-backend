@@ -1,20 +1,18 @@
 // API Types
 export interface GenerateCustomMessageRequest {
   user_id: string;
-  device_id?: string;
-  tone?: string;
-  context?: string;
-  rawMessage?: string;
+  tone: string;
+  context: string;
+  rawMessage: string;
 }
 
 export interface GenerateStructuredMessageRequest {
   user_id: string;
-  device_id?: string;
   recipient?: string;
-  messageType?: string;
+  messageType: string;
   additionalNotes?: string;
-  wordCount?: number;
-  answers?: Answer[];
+  wordCount: number;
+  answers: Answer[];
 }
 
 export interface Answer {
@@ -28,17 +26,17 @@ export interface Prompts {
   userPrompt: string;
 }
 
-export type AddSubscriptionRequest = {
+export interface AddSubscriptionRequest {
   user_id: string;
-  product: string;
+  product: ProductType;
   price: number;
   currency: string;
   platform: string;
   transaction_id: string;
-  original_transaction_id: string;
+  original_transaction_id?: string;
   purchase_date: string;
   environment: string;
-};
+}
 
 // Base API Response
 export interface BaseResponse {
@@ -83,7 +81,7 @@ export type Subscription = {
   is_active: boolean;
   platform: string;
   transaction_id: string;
-  original_transaction_id: string,
+  original_transaction_id?: string,
   purchase_date: string;
   environment: string;
   expires_at: Date;
@@ -91,10 +89,9 @@ export type Subscription = {
 
 export type MessageLog = {
   id?: number;
+  user_id: string;
   input_prompt: string;
   generated_message: string;
   ip?: string | null;
   user_agent?: string | null;
-  device_id?: string | null;
-  user_id: string;
 }; 
