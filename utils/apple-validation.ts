@@ -189,9 +189,12 @@ export async function validateAppleTransaction(
     const credentials = getAppleCredentials();
     const jwt = await generateAppleJWT(credentials);
 
+
     // Construct API URL
     const baseUrl = APPLE_API_ENDPOINTS[environment];
     const url = `${baseUrl}/inApps/v1/transactions/${transactionId}`;
+
+    console.log(`Generated JWT: ${jwt} || URL: ${url}`);
 
     console.log('Calling Apple Store Server API...');
     
