@@ -40,12 +40,11 @@ async function handler(req: any, res: any) {
 
   const { user_id, device_id } = req.body as GenerateStructuredMessageRequest || {};
   if (!user_id) {
-    const response: GenerateStructuredMessageResponse = {
+
+    return res.status(400).json({
       success: false,
       error: 'Missing user_id',
-      message: 'user_id is required to generate structured message'
-    };
-    return res.status(400).json(response);
+    } as GenerateStructuredMessageResponse);
   }
 
   try {
@@ -66,22 +65,18 @@ async function handler(req: any, res: any) {
     await logMessage(logEntry);
 
     // 5. Respond
-    const response: GenerateStructuredMessageResponse = {
+    return res.status(200).json({
       success: true,
       input_prompt: formattedUserPrompt,
-      generated_message: generatedMessage,
-      message: 'Structured message generated successfully'
-    };
-    return res.status(200).json(response);
+      generated_message: generatedMessage
+    } as GenerateStructuredMessageResponse);
 
   } catch (error: any) {
     const statusCode = error.message.includes('subscription') ? 403 : 500;
-    const response: GenerateStructuredMessageResponse = {
+    return res.status(statusCode).json({
       success: false,
       error: error.message || 'An unexpected error occurred',
-      message: statusCode === 403 ? 'Subscription validation failed' : 'Internal server error'
-    };
-    return res.status(statusCode).json(response);
+    } as GenerateStructuredMessageResponse);
   }
 }
 
