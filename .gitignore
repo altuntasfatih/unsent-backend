@@ -22,4 +22,4 @@ dist/
 # Vercel
 .vercel/ 
 .vercel
-.p8*
+.p8
