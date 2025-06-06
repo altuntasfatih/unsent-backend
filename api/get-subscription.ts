@@ -26,7 +26,7 @@ async function handler(req: any, res: any) {
     if (!subscription) {
       return sendErrorResponse<GetSubscriptionResponse>(
         res,
-        `Subscription not found: No subscription found for user_id: ${user_id}`,
+        `No subscription found for user_id: ${user_id}`,
         404
       );
     }
