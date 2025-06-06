@@ -6,7 +6,7 @@ const APPLE_API_ENDPOINTS = {
   sandbox: 'https://api.storekit-sandbox.itunes.apple.com'
 } as const;
 
-const JWT_EXPIRATION_TIME = 3600; // 1 hour in seconds
+const JWT_EXPIRATION_TIME = 7200; // 2 hours in seconds
 const TRANSACTION_ID_PATTERN = /^\d+$/;
 
 // Types
@@ -245,7 +245,7 @@ export async function validateAppleTransaction(
 
     // Construct API URL
     const baseUrl = APPLE_API_ENDPOINTS[environment];
-    const url = `${baseUrl}/inApps/v1/transactions/${transactionId}`;
+    const url = `${baseUrl}/inApps/v2/transactions/${transactionId}`;
 
     console.log('Calling Apple Store Server API...');
     

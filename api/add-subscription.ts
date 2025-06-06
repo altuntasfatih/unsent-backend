@@ -1,18 +1,19 @@
-import type { 
-  AddSubscriptionRequest, 
-  AddSubscriptionResponse, 
-  Subscription, 
-  ProductType 
+import type {
+  AddSubscriptionRequest,
+  AddSubscriptionResponse,
+  Subscription,
+  ProductType
 } from '../types/types.js';
 import { ProductEnum } from '../types/types.js';
 import { withAuth } from '../utils/with-auth.js';
 import { addSubscription, getActiveSubscriptionByTransactionId } from '../utils/supabase.js';
+import { validateAdaptySubscription } from '../utils/adapty-validation.js';
 import { validateAppleTransaction } from '../utils/apple-validation.js';
 import { sendSuccessResponse, sendErrorResponse } from '../utils/response-helpers.js';
 
 function calculateExpiry(purchaseDate: Date, product: ProductType): Date {
   let daysToAdd = 0;
-  
+
   switch (product) {
     case ProductEnum.Weekly:
       daysToAdd = 7;
@@ -26,7 +27,7 @@ function calculateExpiry(purchaseDate: Date, product: ProductType): Date {
     default:
       throw new Error(`Unknown subscription type: ${product}`);
   }
-  
+
   const expireDate = new Date(purchaseDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
   expireDate.setHours(23, 59, 59, 999);
   return expireDate;
@@ -55,17 +56,22 @@ async function handler(req: any, res: any) {
       res,
       'Missing required fields: user_id, product, price, and currency are required'
     );
-  }
+    }
 
-  // Validate Apple transaction if platform is iOS
-  if (platform?.toLowerCase() === 'ios') {
-    if (!transaction_id || !environment) {
+  // Validate subscription based on configured method
+  if (process.env.VALIDATATION_METHOD === 'adapty') {
+    // Validate subscription with Adapty
+    const adaptyValidation = await validateAdaptySubscription(user_id);
+    if (!adaptyValidation.isValid) {
       return sendErrorResponse<AddSubscriptionResponse>(
         res,
-        'Missing required iOS fields: transaction_id and environment are required for iOS platform'
+        `Adapty subscription validation failed: ${adaptyValidation.error}`
       );
     }
 
+    console.log('Adapty subscription validated successfully for user:', user_id);
+
+  } else if (process.env.VALIDATATION_METHOD === 'apple' && transaction_id) {
     // Check for existing active subscription
     const existingSubscription = await getActiveSubscriptionByTransactionId(transaction_id);
     
@@ -75,19 +81,25 @@ async function handler(req: any, res: any) {
         res,
         { subscription: existingSubscription }
       );
+    } else {
+      // Validate with Apple Store Server API
+      const appleValidation = await validateAppleTransaction(transaction_id, environment);
+      if (!appleValidation.isValid) {
+        return sendErrorResponse<AddSubscriptionResponse>(
+          res,
+          `Apple subscription validation failed: ${appleValidation.error}`
+        );
+      }
+      console.log('Apple subscription validated successfully for user:', user_id);
     }
 
-    // Validate with Apple Store Server API
-    const validation = await validateAppleTransaction(transaction_id, environment);
-    if (!validation.isValid) {
-      return sendErrorResponse<AddSubscriptionResponse>(
-        res,
-        `Apple transaction validation failed: ${validation.error}`
-      );
-    }
-
-    console.log('Apple transaction validated successfully:', transaction_id);
+  } else {
+    return sendErrorResponse<AddSubscriptionResponse>(
+      res,
+      'Invalid validation method or missing required fields for validation'
+    );
   }
+
 
   // Calculate subscription expiry date
   let expiresAt: Date;
