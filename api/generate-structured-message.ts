@@ -1,9 +1,10 @@
-import type { GenerateStructuredMessageRequest, GenerateStructuredMessageResponse, Answer, Prompts } from '../types/types.js';
+import type { GenerateStructuredMessageRequest, MessageGenerationResponse, Answer, Prompts } from '../types/types.js';
 import { withAuth } from '../utils/with-auth.js';
 import { validateSubscription, logMessage, createLogEntry } from '../utils/supabase.js';
 import { generateMessageWithAI } from '../utils/openai.js';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { sendErrorResponse } from '../utils/response-helpers.js';
 
 // Utility functions
 async function getPrompts(): Promise<Prompts> {
@@ -41,10 +42,11 @@ async function handler(req: any, res: any) {
   const { user_id } = req.body as GenerateStructuredMessageRequest || {};
   if (!user_id) {
 
-    return res.status(400).json({
-      success: false,
-      error: 'Missing user_id',
-    } as GenerateStructuredMessageResponse);
+    return sendErrorResponse<MessageGenerationResponse>(
+      res,
+      'Missing user_id',
+      400
+    );
   }
 
   try {
@@ -69,14 +71,15 @@ async function handler(req: any, res: any) {
       success: true,
       input_prompt: formattedUserPrompt,
       generated_message: generatedMessage
-    } as GenerateStructuredMessageResponse);
+    } as MessageGenerationResponse);
 
   } catch (error: any) {
     const statusCode = error.message.includes('subscription') ? 403 : 500;
-    return res.status(statusCode).json({
-      success: false,
-      error: error.message || 'An unexpected error occurred',
-    } as GenerateStructuredMessageResponse);
+    return sendErrorResponse<MessageGenerationResponse>(
+      res,
+      error.message || 'An unexpected error occurred',
+      statusCode
+    );
   }
 }
 

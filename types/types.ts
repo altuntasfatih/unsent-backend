@@ -49,18 +49,13 @@ export interface AddSubscriptionResponse extends BaseResponse {
   subscription: Subscription;
 }
 
-export interface GenerateCustomMessageResponse extends BaseResponse {
-  input_prompt: string;
-  generated_message: string;
-}
-
-export interface GenerateStructuredMessageResponse extends BaseResponse {
-  input_prompt: string;
-  generated_message: string;
-}
-
 export interface GetSubscriptionResponse extends BaseResponse {
   subscription: Subscription;
+}
+
+export interface MessageGenerationResponse extends BaseResponse {
+  input_prompt: string;
+  generated_message: string;
 }
 
 // Supabase Types

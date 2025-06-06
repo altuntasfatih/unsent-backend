@@ -1,4 +1,4 @@
-import type { GenerateCustomMessageRequest, GenerateCustomMessageResponse, GenerateStructuredMessageResponse, Prompts } from '../types/types.js';
+import type { GenerateCustomMessageRequest,  MessageGenerationResponse, Prompts } from '../types/types.js';
 import { withAuth } from '../utils/with-auth.js';
 import { generateMessageWithAI } from '../utils/openai.js';
 import { validateSubscription, logMessage, createLogEntry } from '../utils/supabase.js';
@@ -25,7 +25,7 @@ function formatUserPrompt(structure: string, body: GenerateCustomMessageRequest)
 // Main handler
 async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
-    return sendErrorResponse<GenerateCustomMessageResponse>(
+    return sendErrorResponse<MessageGenerationResponse>(
       res,
       'Method not allowed',
       405
@@ -34,7 +34,7 @@ async function handler(req: any, res: any) {
 
   const { user_id } = req.body as GenerateCustomMessageRequest || {};
   if (!user_id) {
-    return sendErrorResponse<GenerateCustomMessageResponse>(
+    return sendErrorResponse<MessageGenerationResponse>(
       res,
       'Missing user_id: user_id is required to generate custom message'
     );
@@ -57,7 +57,7 @@ async function handler(req: any, res: any) {
     await logMessage(logEntry);
 
     // 5. Respond
-    return sendSuccessResponse<GenerateCustomMessageResponse>(
+    return sendSuccessResponse<MessageGenerationResponse>(
       res,
       {
         input_prompt: formattedUserPrompt,
@@ -67,10 +67,11 @@ async function handler(req: any, res: any) {
 
   } catch (error: any) {
     const statusCode = error.message.includes('subscription') ? 403 : 500;
-    return res.status(statusCode).json({
-      success: false,
-      error: error.message || 'An unexpected error occurred',
-    } as GenerateCustomMessageResponse);
+    return sendErrorResponse<MessageGenerationResponse>(
+      res,
+      error.message || 'An unexpected error occurred',
+      statusCode
+    );
   }
 }
 

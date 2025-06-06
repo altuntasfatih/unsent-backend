@@ -106,7 +106,11 @@ async function handler(req: any, res: any) {
   try {
     expiresAt = calculateExpiry(new Date(purchase_date), product as ProductType);
   } catch (err: any) {
-    return res.status(400).json({ error: err.message });
+    return sendErrorResponse<AddSubscriptionResponse>(
+      res,
+      err.message,
+      400
+    );
   }
 
   // Create new subscription object
@@ -128,7 +132,11 @@ async function handler(req: any, res: any) {
   const { error } = await addSubscription(newSubscription);
 
   if (error) {
-    return res.status(500).json({ error: error.message });
+    return sendErrorResponse<AddSubscriptionResponse>(
+      res,
+      error.message,
+      500
+    );
   }
 
   // Return success response
