@@ -10,8 +10,6 @@ import { addSubscription, getActiveSubscriptionByTransactionId } from '../utils/
 import { validateAppleTransaction } from '../utils/apple-validation.js';
 import { sendSuccessResponse, sendErrorResponse } from '../utils/response-helpers.js';
 
-const log = console.log;
-
 function calculateExpiry(purchaseDate: Date, product: ProductType): Date {
   let daysToAdd = 0;
   
@@ -55,8 +53,7 @@ async function handler(req: any, res: any) {
   if (!user_id || !product || !price || !currency) {
     return sendErrorResponse<AddSubscriptionResponse>(
       res,
-      'Missing required fields',
-      'user_id, product, price, and currency are required'
+      'Missing required fields: user_id, product, price, and currency are required'
     );
   }
 
@@ -65,8 +62,7 @@ async function handler(req: any, res: any) {
     if (!transaction_id || !environment) {
       return sendErrorResponse<AddSubscriptionResponse>(
         res,
-        'Missing required iOS fields',
-        'transaction_id and environment are required for iOS platform'
+        'Missing required iOS fields: transaction_id and environment are required for iOS platform'
       );
     }
 
@@ -74,11 +70,10 @@ async function handler(req: any, res: any) {
     const existingSubscription = await getActiveSubscriptionByTransactionId(transaction_id);
     
     if (existingSubscription) {
-      log('Returning existing active subscription for transaction:', transaction_id);
+      console.log('Returning existing active subscription for transaction:', transaction_id);
       return sendSuccessResponse<AddSubscriptionResponse>(
         res,
-        { subscription: existingSubscription },
-        'Existing active subscription found'
+        { subscription: existingSubscription }
       );
     }
 
@@ -87,12 +82,11 @@ async function handler(req: any, res: any) {
     if (!validation.isValid) {
       return sendErrorResponse<AddSubscriptionResponse>(
         res,
-        'Apple transaction validation failed',
-        validation.error
+        `Apple transaction validation failed: ${validation.error}`
       );
     }
 
-    log('Apple transaction validated successfully:', transaction_id);
+    console.log('Apple transaction validated successfully:', transaction_id);
   }
 
   // Calculate subscription expiry date
@@ -128,8 +122,7 @@ async function handler(req: any, res: any) {
   // Return success response
   return sendSuccessResponse<AddSubscriptionResponse>(
     res,
-    { subscription: newSubscription },
-    'Subscription created successfully'
+    { subscription: newSubscription }
   );
 }
 

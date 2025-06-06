@@ -44,26 +44,25 @@ export type AddSubscriptionRequest = {
 export interface BaseResponse {
   success: boolean;
   error?: string;
-  message?: string;
 }
 
 // Specific Response Types
 export interface AddSubscriptionResponse extends BaseResponse {
-  subscription?: Subscription;
+  subscription: Subscription;
 }
 
 export interface GenerateCustomMessageResponse extends BaseResponse {
-  input_prompt?: string;
-  generated_message?: string;
+  input_prompt: string;
+  generated_message: string;
 }
 
 export interface GenerateStructuredMessageResponse extends BaseResponse {
-  input_prompt?: string;
-  generated_message?: string;
+  input_prompt: string;
+  generated_message: string;
 }
 
 export interface GetSubscriptionResponse extends BaseResponse {
-  subscription?: Subscription;
+  subscription: Subscription;
 }
 
 // Supabase Types

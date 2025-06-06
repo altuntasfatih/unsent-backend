@@ -28,7 +28,6 @@ async function handler(req: any, res: any) {
     return sendErrorResponse<GenerateCustomMessageResponse>(
       res,
       'Method not allowed',
-      undefined,
       405
     );
   }
@@ -37,8 +36,7 @@ async function handler(req: any, res: any) {
   if (!user_id) {
     return sendErrorResponse<GenerateCustomMessageResponse>(
       res,
-      'Missing user_id',
-      'user_id is required to generate custom message'
+      'Missing user_id: user_id is required to generate custom message'
     );
   }
 
@@ -65,16 +63,15 @@ async function handler(req: any, res: any) {
       {
         input_prompt: formattedUserPrompt,
         generated_message: generatedMessage
-      },
-      'Message generated successfully'
+      }
     );
 
   } catch (error: any) {
     const statusCode = error.message.includes('subscription') ? 403 : 500;
+    const errorPrefix = statusCode === 403 ? 'Subscription validation failed' : 'Internal server error';
     return sendErrorResponse<GenerateCustomMessageResponse>(
       res,
-      error.message || 'An unexpected error occurred',
-      statusCode === 403 ? 'Subscription validation failed' : 'Internal server error',
+      `${errorPrefix}: ${error.message || 'An unexpected error occurred'}`,
       statusCode
     );
   }

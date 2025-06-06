@@ -1,7 +1,5 @@
 import { SignJWT, importPKCS8 } from 'jose';
 
-const log = console.log;
-
 // Constants
 const APPLE_API_ENDPOINTS = {
   production: 'https://api.storekit.itunes.apple.com',
@@ -185,7 +183,7 @@ export async function validateAppleTransaction(
       return { isValid: false, error: 'Invalid environment. Must be "production" or "sandbox"' };
     }
 
-    log(`Validating transaction ${transactionId} using App Store Server API in ${environment} environment`);
+    console.log(`Validating transaction ${transactionId} using App Store Server API in ${environment} environment`);
 
     // Get credentials and generate JWT
     const credentials = getAppleCredentials();
@@ -195,7 +193,7 @@ export async function validateAppleTransaction(
     const baseUrl = APPLE_API_ENDPOINTS[environment];
     const url = `${baseUrl}/inApps/v1/transactions/${transactionId}`;
 
-    log('Calling Apple Store Server API...');
+    console.log('Calling Apple Store Server API...');
     
     // Make API request
     const response = await fetch(url, {
@@ -206,7 +204,7 @@ export async function validateAppleTransaction(
       },
     });
 
-    log('Apple API response status:', response.status);
+    console.log('Apple API response status:', response.status);
 
     // Handle non-OK responses
     if (!response.ok) {
@@ -223,7 +221,7 @@ export async function validateAppleTransaction(
       };
     }
 
-    log('Transaction found and validated successfully');
+    console.log('Transaction found and validated successfully');
     
     // Parse transaction info from JWS
     const transactionInfo = parseJWS(data.signedTransactionInfo);
@@ -277,7 +275,7 @@ export async function validateSubscriptionRequest(
       }
 
       // Perform Apple transaction validation
-      log(`Performing Apple validation for transaction: ${transaction_id}`);
+      console.log(`Performing Apple validation for transaction: ${transaction_id}`);
       const appleValidation = await validateAppleTransaction(transaction_id, environment);
       
       if (!appleValidation.isValid) {
@@ -287,7 +285,7 @@ export async function validateSubscriptionRequest(
         };
       }
 
-      log('Apple transaction validated successfully:', transaction_id);
+      console.log('Apple transaction validated successfully:', transaction_id);
       
       return {
         isValid: true,
