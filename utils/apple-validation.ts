@@ -1,4 +1,4 @@
-import { SignJWT, importPKCS8 } from 'jose';
+import { SignJWT, importPKCS8, jwtVerify, createRemoteJWKSet } from 'jose';
 
 // Constants
 const APPLE_API_ENDPOINTS = {
@@ -64,6 +64,7 @@ export interface ValidationResult {
   };
 }
 
+// Utility functions
 function getAppleCredentials(): AppleCredentials {
   const keyId = process.env.APPLE_KEY_ID;
   const issuerId = process.env.APPLE_ISSUER_ID;
@@ -85,7 +86,7 @@ function isValidEnvironment(environment: string): environment is Environment {
   return environment === 'production' || environment === 'sandbox';
 }
 
-// Generate JWT for Apple Store Server API authentication
+// JWT functions
 async function generateAppleJWT(credentials: AppleCredentials): Promise<string> {
   try {
     // Import the private key for ES256 signing
@@ -113,7 +114,52 @@ async function generateAppleJWT(credentials: AppleCredentials): Promise<string> 
   }
 }
 
-// Parse JWS (JSON Web Signature) - simplified version
+async function verifyAppleJWT(jwt: string, credentials: AppleCredentials): Promise<boolean> {
+  try {
+    // First, verify the JWT signature cryptographically
+    const pkcs8Key = await importPKCS8(credentials.privateKey, 'ES256');
+    
+    try {
+      const { payload, protectedHeader } = await jwtVerify(jwt, pkcs8Key, {
+        issuer: credentials.issuerId,
+        audience: 'appstoreconnect-v1',
+        algorithms: ['ES256']
+      });
+
+      // Additional claims verification
+      if (protectedHeader.kid !== credentials.keyId) {
+        console.error('JWT verification failed: Key ID mismatch');
+        return false;
+      }
+
+      if (payload.bid !== credentials.bundleId) {
+        console.error('JWT verification failed: Bundle ID mismatch');
+        return false;
+      }
+
+      // Verify timing claims with clock skew tolerance
+      const now = Math.floor(Date.now() / 1000);
+      
+      if (payload.iat && payload.iat > now + 60) { // Allow 60 seconds clock skew
+        console.error('JWT verification failed: Token issued in the future');
+        return false;
+      }
+
+      console.log('JWT verification successful - signature and claims validated');
+      return true;
+
+    } catch (jwtError) {
+      console.error('JWT signature verification failed:', jwtError);
+      return false;
+    }
+
+  } catch (error) {
+    console.error('JWT verification failed during key import:', error);
+    return false;
+  }
+}
+
+// Parse functions
 function parseJWS(jws: string): AppleTransactionInfo | null {
   try {
     const parts = jws.split('.');
@@ -147,7 +193,6 @@ function parseJWS(jws: string): AppleTransactionInfo | null {
   }
 }
 
-// Handle API response errors
 function handleApiError(status: number, statusText: string): AppleValidationResult {
   switch (status) {
     case 401:
@@ -168,7 +213,7 @@ function handleApiError(status: number, statusText: string): AppleValidationResu
   }
 }
 
-// Main validation function
+// Main validation functions
 export async function validateAppleTransaction(
   transactionId: string,
   environment: string
@@ -189,12 +234,18 @@ export async function validateAppleTransaction(
     const credentials = getAppleCredentials();
     const jwt = await generateAppleJWT(credentials);
     
+    // Verify the generated JWT is valid
+    const isJWTValid = await verifyAppleJWT(jwt, credentials);
+    if (!isJWTValid) {
+      return { 
+        isValid: false, 
+        error: 'Generated JWT failed validation - check your Apple credentials' 
+      };
+    }
 
     // Construct API URL
     const baseUrl = APPLE_API_ENDPOINTS[environment];
     const url = `${baseUrl}/inApps/v1/transactions/${transactionId}`;
-
-    console.log(`Generated JWT: ${jwt} || URL: ${url}`);
 
     console.log('Calling Apple Store Server API...');
     
@@ -250,7 +301,6 @@ export async function validateAppleTransaction(
   }
 }
 
-// Comprehensive subscription validation (includes Apple validation when needed)
 export async function validateSubscriptionRequest(
   request: SubscriptionValidationRequest
 ): Promise<ValidationResult> {
@@ -313,7 +363,7 @@ export async function validateSubscriptionRequest(
     console.error('Subscription validation error:', error);
     return { 
       isValid: false, 
-      error: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
+      error: `Validation error: ${error instanceof Error ? error.message : 'Unknown error'}` 
     };
   }
 }
