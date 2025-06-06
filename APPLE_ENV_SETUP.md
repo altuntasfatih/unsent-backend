@@ -2,72 +2,63 @@
 
 ## Required Environment Variables
 
-Create a `.env` file in your backend directory with these variables:
+Add these to your `.env` file or deployment environment:
 
-```env
-# Apple Store Server API Configuration
-# Get these values from App Store Connect > Users and Access > Keys
-
-# Your App Store Connect API Key ID (e.g., "2X9R4HXF34")
-APPLE_KEY_ID=your_key_id_here
-
-# Your Issuer ID from App Store Connect (e.g., "57246542-96fe-1a63-e053-0824d011072a")
-APPLE_ISSUER_ID=your_issuer_id_here
-
-# Your app's bundle ID (e.g., "com.unsentpro.app")
+```bash
+# Apple Store Server API Credentials
+APPLE_KEY_ID=92S3H8WB7U
+APPLE_ISSUER_ID=your-issuer-id-here
 APPLE_BUNDLE_ID=com.unsentpro.app
-
-# Your private key content from the .p8 file (include the full PEM format)
-APPLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----
-MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQg...
-(your actual private key content here)
-...
------END PRIVATE KEY-----"
-
-# Environment: 'production' or 'sandbox'  
-APPLE_ENVIRONMENT=sandbox
+APPLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n
 ```
 
-## How to Get Your Apple Credentials
+## Where to Find These Values
 
-### 1. Create App Store Connect API Key
-1. Go to [App Store Connect](https://appstoreconnect.apple.com)
-2. Navigate to **Users and Access** → **Keys**
-3. Click **Generate API Key**
-4. Fill in:
-   - **Name**: "Transaction Validation API"
-   - **Access**: "App Manager" (minimum required)
-5. Click **Generate**
-6. **Download the .p8 file** (you can only download it once!)
-7. Note the **Key ID** and **Issuer ID**
+### APPLE_KEY_ID
+- Already extracted from filename: `92S3H8WB7U`
 
-### 2. Convert .p8 File to Environment Variable
-```bash
-# View your private key content
-cat AuthKey_XXXXXXXXXX.p8
+### APPLE_ISSUER_ID  
+- Found in App Store Connect → Users and Access → Keys → View Key Details
+- Format: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
 
-# Copy the entire content (including BEGIN/END lines) to APPLE_PRIVATE_KEY
+### APPLE_BUNDLE_ID
+- Your app's bundle identifier (e.g., `com.unsentpro.app`)
+
+### APPLE_PRIVATE_KEY
+- The private key converted to single-line string format (already done above)
+- **Important**: Keep the quotes around the entire key string
+
+## Usage in Code
+
+The `apple-validation.ts` utility will automatically use these environment variables:
+
+```typescript
+const credentials = {
+  keyId: process.env.APPLE_KEY_ID,           // 92S3H8WB7U
+  issuerId: process.env.APPLE_ISSUER_ID,     // Your issuer ID
+  bundleId: process.env.APPLE_BUNDLE_ID,     // com.unsentpro.app  
+  privateKey: process.env.APPLE_PRIVATE_KEY  // The string key
+};
 ```
 
-### 3. Find Your Bundle ID
-- Your iOS app's bundle identifier (e.g., `com.unsentpro.app`)
-- Found in Xcode project settings or App Store Connect
+## Testing
 
-### 4. Test the Setup
+Once environment variables are set, test with:
+
 ```bash
-# Install dependencies first
-npm install
-
-# Test API call
-curl -X POST http://localhost:3000/api/add-subscription \
+curl -X POST "http://localhost:3000/api/add-subscription" \
   -H "Content-Type: application/json" \
+  -H "Authorization: 2f71a653-2d5c-4ce1-a231-f71e56c9bb77" \
+  -H "device_id: 1234567890" \
   -d '{
-    "user_id": "test123",
-    "product": "com.unsentpro.monthly",
-    "platform": "ios",
-    "price": 9.99,
+    "user_id": "test_user",
+    "product": "com.unsentpro.monthly", 
+    "price": 4.99,
     "currency": "USD",
+    "platform": "ios",
     "transaction_id": "1000000123456789",
+    "original_transaction_id": "1000000123456789",
+    "purchase_date": "2024-01-15T10:30:00Z",
     "environment": "sandbox"
   }'
 ```

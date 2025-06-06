@@ -188,7 +188,7 @@ export async function validateAppleTransaction(
     // Get credentials and generate JWT
     const credentials = getAppleCredentials();
     const jwt = await generateAppleJWT(credentials);
-
+    
 
     // Construct API URL
     const baseUrl = APPLE_API_ENDPOINTS[environment];
