@@ -11,21 +11,17 @@ import { validateAdaptySubscription } from '../utils/adapty-validation.js';
 import { validateAppleTransaction } from '../utils/apple-validation.js';
 import { sendSuccessResponse, sendErrorResponse } from '../utils/response-helpers.js';
 
-function calculateExpiry(purchaseDate: Date, product: ProductType): Date {
-  let daysToAdd = 0;
+const SUBSCRIPTION_DURATIONS = {
+  [ProductEnum.Weekly]: 7,
+  [ProductEnum.Monthly]: 30,
+  [ProductEnum.Yearly]: 365
+} as const;
 
-  switch (product) {
-    case ProductEnum.Weekly:
-      daysToAdd = 7;
-      break;
-    case ProductEnum.Monthly:
-      daysToAdd = 30;
-      break;
-    case ProductEnum.Yearly:
-      daysToAdd = 365;
-      break;
-    default:
-      throw new Error(`Unknown subscription type: ${product}`);
+function calculateExpiry(purchaseDate: Date, product: ProductType): Date {
+  const daysToAdd = SUBSCRIPTION_DURATIONS[product];
+  
+  if (!daysToAdd) {
+    throw new Error(`Unknown subscription type: ${product}`);
   }
 
   const expireDate = new Date(purchaseDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
@@ -56,7 +52,7 @@ async function handler(req: any, res: any) {
       res,
       'Missing required fields: user_id, product, price, and currency are required'
     );
-    }
+  }
 
   // Validate subscription based on configured method
   if (process.env.VALIDATATION_METHOD === 'adapty') {
@@ -92,14 +88,7 @@ async function handler(req: any, res: any) {
       }
       console.log('Apple subscription validated successfully for user:', user_id);
     }
-
-  } else {
-    return sendErrorResponse<AddSubscriptionResponse>(
-      res,
-      'Invalid validation method or missing required fields for validation'
-    );
   }
-
 
   // Calculate subscription expiry date
   let expiresAt: Date;
@@ -125,7 +114,7 @@ async function handler(req: any, res: any) {
     original_transaction_id: original_transaction_id,
     purchase_date,
     environment,
-    expires_at: expiresAt,
+    expires_at: expiresAt
   };
 
   // Insert subscription into database
