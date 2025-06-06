@@ -1,4 +1,4 @@
-import type { GenerateCustomMessageRequest, GenerateCustomMessageResponse, Prompts } from '../types/types.js';
+import type { GenerateCustomMessageRequest, GenerateCustomMessageResponse, GenerateStructuredMessageResponse, Prompts } from '../types/types.js';
 import { withAuth } from '../utils/with-auth.js';
 import { generateMessageWithAI } from '../utils/openai.js';
 import { validateSubscription, logMessage, createLogEntry } from '../utils/supabase.js';
@@ -68,12 +68,10 @@ async function handler(req: any, res: any) {
 
   } catch (error: any) {
     const statusCode = error.message.includes('subscription') ? 403 : 500;
-    const errorPrefix = statusCode === 403 ? 'Subscription validation failed' : 'Internal server error';
-    return sendErrorResponse<GenerateCustomMessageResponse>(
-      res,
-      `${errorPrefix}: ${error.message || 'An unexpected error occurred'}`,
-      statusCode
-    );
+    return res.status(statusCode).json({
+      success: false,
+      error: error.message || 'An unexpected error occurred',
+    } as GenerateCustomMessageResponse);
   }
 }
 
