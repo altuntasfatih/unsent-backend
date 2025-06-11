@@ -1,0 +1,19 @@
+{
+  "name": "unsent-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "bunx vercel dev",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.5",
+    "openai": "^4.30.0",
+    "jose": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "typescript": "^5.4.5"
+  }
+}
