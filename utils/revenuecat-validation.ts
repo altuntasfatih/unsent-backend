@@ -59,17 +59,11 @@ interface RevenueCatValidationResult {
 export async function validateRevenueCatSubscription(
   customerUserId: string
 ): Promise<RevenueCatValidationResult> {
-  // Format user ID to ensure proper RevenueCat format
-  if (customerUserId.startsWith(':')) {
-    customerUserId = customerUserId.replace(':', '$RCAnonymousID:');
-  } else if (!customerUserId.startsWith('$RCAnonymousID:')) {
-    customerUserId = `$RCAnonymousID:${customerUserId}`;
-  }
+
 
   try {
     logger.info('Validating RevenueCat subscription', { 
-      customerUserId,
-      rawUserId: customerUserId,
+      customerUserId
     });
 
     if (!PROJECT_ID) {
