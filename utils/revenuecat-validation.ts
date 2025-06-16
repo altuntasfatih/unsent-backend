@@ -57,24 +57,24 @@ interface RevenueCatValidationResult {
 
 // Main validation function
 export async function validateRevenueCatSubscription(
-  customerUserId: string
+  customer_user_id: string
 ): Promise<RevenueCatValidationResult> {
 
 
   try {
     logger.info('Validating RevenueCat subscription', { 
-      customerUserId
+      customer_user_id
     });
 
     if (!PROJECT_ID) {
       throw new Error('REVENUECAT_PROJECT_ID environment variable is not set');
     }
 
-    const apiUrl = `${REVENUECAT_API_BASE_URL}/projects/${PROJECT_ID}/customers/${customerUserId}`;
+    const apiUrl = `${REVENUECAT_API_BASE_URL}/projects/${PROJECT_ID}/customers/${customer_user_id}`;
     
     logger.info('Calling RevenueCat API', { 
       apiUrl,
-      customerUserId,
+      customer_user_id,
     });
 
     const response = await fetch(apiUrl, {
@@ -90,7 +90,7 @@ export async function validateRevenueCatSubscription(
       logger.error('RevenueCat API error', {
         status: response.status,
         error: errorText,
-        customerUserId
+        customer_user_id
       });
       return {
         isValid: false,
@@ -101,7 +101,7 @@ export async function validateRevenueCatSubscription(
     const customerData = await response.json() as RevenueCatCustomer;
 
     logger.info('RevenueCat customer data retrieved successfully', {
-      customerUserId,
+      customer_user_id,
       entitlements: customerData.active_entitlements?.items?.map(ent => ({
         id: ent.entitlement_id,
         expiresAt: new Date(ent.expires_at).toISOString(),
@@ -113,14 +113,14 @@ export async function validateRevenueCatSubscription(
     );
 
     if (!hasActiveEntitlements) {
-      logger.warn('No active entitlements found', { customerUserId });
+      logger.warn('No active entitlements found', { customer_user_id });
       return {
         isValid: false,
         error: 'No active entitlements found in RevenueCat profile',
       };
     }
 
-    logger.info('Active entitlements found', { customerUserId });
+    logger.info('Active entitlements found', { customer_user_id });
     return {
       isValid: true,
       customer: customerData,
@@ -129,7 +129,7 @@ export async function validateRevenueCatSubscription(
   } catch (error) {
     logger.error('RevenueCat validation error', {
       error: error instanceof Error ? error.message : 'Unknown error',
-      customerUserId
+      customer_user_id
     });
     return {
       isValid: false,

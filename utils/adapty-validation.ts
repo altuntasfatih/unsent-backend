@@ -29,16 +29,16 @@ interface AdaptyValidationResult {
 
 // Main validation function
 export async function validateAdaptySubscription(
-  customerUserId: string
+  customer_user_id: string
 ): Promise<AdaptyValidationResult> {
   try {
-    logger.info('Validating Adapty subscription', { customerUserId });
+    logger.info('Validating Adapty subscription', { customer_user_id });
         
     // Call Adapty API
     const response = await fetch(`${ADAPTY_API_BASE_URL}/profile/`, {
       method: 'GET',
       headers: {
-        'adapty-customer-user-id': customerUserId,
+        'adapty-customer-user-id': customer_user_id,
         'Content-Type': 'application/json',
         'Authorization': `Api-Key ${API_KEY}`
       }
@@ -49,7 +49,7 @@ export async function validateAdaptySubscription(
       logger.error('Adapty API error', { 
         status: response.status, 
         error: errorText,
-        customerUserId 
+        customer_user_id 
       });
       return {
         isValid: false,
@@ -58,21 +58,21 @@ export async function validateAdaptySubscription(
     }
     
     const profileData = await response.json() as AdaptyProfile;
-    logger.info('Adapty profile retrieved successfully', { customerUserId });
+    logger.info('Adapty profile retrieved successfully', { customer_user_id });
     
     // Check if user has any active subscriptions
     const hasActiveSubscription = Object.values(profileData.subscriptions || {})
       .some(subscription => subscription.is_active);
     
     if (!hasActiveSubscription) {
-      logger.warn('No active subscriptions found', { customerUserId });
+      logger.warn('No active subscriptions found', { customer_user_id });
       return {
         isValid: false,
         error: 'No active subscriptions found in Adapty profile'
       };
     }
     
-    logger.info('Active subscription found', { customerUserId });
+    logger.info('Active subscription found', { customer_user_id });
     return {
       isValid: true,
       profile: profileData
@@ -81,7 +81,7 @@ export async function validateAdaptySubscription(
   } catch (error) {
     logger.error('Adapty validation error', { 
       error,
-      customerUserId 
+      customer_user_id 
     });
     return {
       isValid: false,
