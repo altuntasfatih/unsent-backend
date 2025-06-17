@@ -4,6 +4,7 @@ export interface GenerateCustomMessageRequest {
   tone: string;
   context: string;
   raw_message: string;
+  word_count: number;
 }
 
 export interface GenerateStructuredMessageRequest {

@@ -8,6 +8,7 @@ import path from 'path';
 import { sendSuccessResponse, sendErrorResponse } from '../utils/response-helpers.js';
 import { createRequestLogger } from '../utils/logger.js';
 
+const MAX_WORDS = 250;
 // Utility functions
 async function getPrompts(): Promise<Prompts> {
   const filePath = path.join(process.cwd(), 'prompts', 'custom-message.json');
@@ -16,11 +17,13 @@ async function getPrompts(): Promise<Prompts> {
 }
 
 function formatUserPrompt(structure: string, body: GenerateCustomMessageRequest): string {
-  const { tone, context, raw_message } = body;
+  const { tone, context, raw_message, word_count } = body;
 
   return structure
     .replace('{{tone}}', tone || '')
     .replace('{{context}}', context || '')
+    .replace('{{requested_word_count}}', word_count.toString())
+    .replace('{{max_words}}', MAX_WORDS.toString())
     .replace('{{raw_message}}', raw_message || '');
 }
 

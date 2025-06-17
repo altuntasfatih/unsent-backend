@@ -8,6 +8,8 @@ import { sendErrorResponse } from '../utils/response-helpers.js';
 import { createRequestLogger } from '../utils/logger.js';
 import { validateSubscription } from '../utils/subscription-helpers.js';
 
+const MAX_WORDS = 250;
+
 // Utility functions
 async function getPrompts(): Promise<Prompts> {
   const filePath = path.join(process.cwd(), 'prompts', 'structured-message.json');
@@ -31,7 +33,8 @@ function formatUserPrompt(structure: string, body: GenerateStructuredMessageRequ
     .replace('{{recipient}}', recipient || '')
     .replace('{{message_type}}', message_type || '')
     .replace('{{additional_notes}}', additional_notes || '')
-    .replace('{{word_count}}', word_count?.toString() || '')
+    .replace('{{word_count}}', word_count.toString())
+    .replace('{{max_words}}', MAX_WORDS.toString())
     .replace('{{answersText}}', answersText);
 }
 
