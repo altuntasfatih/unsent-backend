@@ -6,7 +6,7 @@ import type {
 } from '../types/types.js';
 import { ProductEnum } from '../types/types.js';
 import { withAuth } from '../utils/with-auth.js';
-import { addSubscription, getActiveSubscriptionByTransactionId } from '../utils/supabase.js';
+import { addSubscription, getActiveSubscription } from '../utils/supabase.js';
 import { validateAdaptySubscription } from '../utils/adapty-validation.js';
 import { validateAppleTransaction } from '../utils/apple-validation.js';
 import { validateRevenueCatSubscription } from '../utils/revenuecat-validation.js';
@@ -33,17 +33,17 @@ function calculateExpiry(purchaseDate: Date, product: ProductType): Date {
   return expireDate;
 }
 
-async function checkExistingSubscription(transactionId?: string): Promise<Subscription | null> {
-  if (typeof transactionId !== 'string' || transactionId.trim() === '') {
+async function checkExistingSubscription(customer_user_id?: string): Promise<Subscription | null> {
+  if (typeof customer_user_id !== 'string' || customer_user_id.trim() === '') {
     return null;
   }
   
-  const existingSubscription = await getActiveSubscriptionByTransactionId(transactionId);
+  const existingSubscription = await getActiveSubscription(customer_user_id);
   
   if (existingSubscription) {
-    logger.info('Found existing active subscription', { transactionId });
+    logger.info('Found existing active subscription', { customer_user_id });
   } else {
-    logger.info('No existing subscription found', { transactionId });
+    logger.info('No existing subscription found', { customer_user_id });
   }
   
   return existingSubscription;
@@ -144,7 +144,7 @@ async function handler(req: any, res: any) {
   }
 
   // 3. Check for existing subscription
-  const existingSubscription = await checkExistingSubscription(transaction_id);
+  const existingSubscription = await checkExistingSubscription(customer_user_id);
   if (existingSubscription) {
     return sendSuccessResponse<PurchaseResponse>(
       res,
