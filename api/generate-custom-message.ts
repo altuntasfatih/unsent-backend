@@ -16,15 +16,19 @@ async function getPrompts(): Promise<Prompts> {
   return JSON.parse(data) as Prompts;
 }
 
-function formatUserPrompt(structure: string, body: GenerateCustomMessageRequest): string {
+function formatUserAndSystemPrompts(system_prompt: string, user_prompt: string, body: GenerateCustomMessageRequest): { system_prompt: string, user_prompt: string } {
   const { tone, context, raw_message, word_count } = body;
 
-  return structure
+  const formattedUserPrompt = user_prompt
     .replace('{{tone}}', tone || '')
-    .replace('{{context}}', context || '')
-    .replace('{{requested_word_count}}', word_count.toString())
-    .replace('{{max_words}}', MAX_WORDS.toString())
+    .replace('{{context}}', context || 'none')
     .replace('{{raw_message}}', raw_message || '');
+
+  const formattedSystemPrompt = system_prompt
+    .replace('{{expected_word_count}}', word_count.toString())
+    .replace('{{max_words}}', MAX_WORDS.toString());
+
+  return { system_prompt: formattedSystemPrompt, user_prompt: formattedUserPrompt };
 }
 
 // Main handler
@@ -66,11 +70,11 @@ async function handler(req: any, res: any) {
 
     // 2. Load and format prompts
     const { system_prompt, user_prompt } = await getPrompts();
-    const formatted_user_prompt = formatUserPrompt(user_prompt, req.body as GenerateCustomMessageRequest);
+    const { system_prompt: formatted_system_prompt, user_prompt: formatted_user_prompt } = formatUserAndSystemPrompts(system_prompt, user_prompt, req.body as GenerateCustomMessageRequest);
     log.info('Prompts loaded and formatted', { customer_user_id });
 
     // 3. Generate message using the utility function
-    const generated_message = await generateMessageWithAI(system_prompt, formatted_user_prompt);
+    const generated_message = await generateMessageWithAI(formatted_system_prompt, formatted_user_prompt);
     log.info('Message generated successfully', { customer_user_id });
 
     // 4. Log the interaction
@@ -85,6 +89,7 @@ async function handler(req: any, res: any) {
     return sendSuccessResponse<MessageGenerationResponse>(
       res,
       {
+        system_prompt: formatted_system_prompt,
         input_prompt: formatted_user_prompt,
         generated_message
       }

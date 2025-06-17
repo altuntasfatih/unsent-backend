@@ -4,7 +4,7 @@ import { logMessage, createLogEntry } from '../utils/supabase.js';
 import { generateMessageWithAI } from '../utils/openai.js';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { sendErrorResponse } from '../utils/response-helpers.js';
+import { sendSuccessResponse,sendErrorResponse } from '../utils/response-helpers.js';
 import { createRequestLogger } from '../utils/logger.js';
 import { validateSubscription } from '../utils/subscription-helpers.js';
 
@@ -25,17 +25,24 @@ function formatAnswers(answers: Answer[] = []): string {
     .join('\n');
 }
 
-function formatUserPrompt(structure: string, body: GenerateStructuredMessageRequest): string {
+function formatUserAndSystemPrompts(
+  system_prompt: string, 
+  user_prompt: string, 
+  body: GenerateStructuredMessageRequest
+): { system_prompt: string; user_prompt: string } {
   const { recipient, message_type, additional_notes, answers, word_count } = body;
   const answersText = formatAnswers(answers);
 
-  return structure
+  const formattedUserPrompt = user_prompt
     .replace('{{recipient}}', recipient || '')
     .replace('{{message_type}}', message_type || '')
     .replace('{{additional_notes}}', additional_notes || '')
     .replace('{{word_count}}', word_count.toString())
-    .replace('{{max_words}}', MAX_WORDS.toString())
     .replace('{{answersText}}', answersText);
+
+  const formattedSystemPrompt = system_prompt.replace('{{max_words}}', MAX_WORDS.toString());
+
+  return { system_prompt: formattedSystemPrompt, user_prompt: formattedUserPrompt };
 }
 
 // Main handler
@@ -74,27 +81,48 @@ async function handler(req: any, res: any) {
 
     // 2. Load and format prompts
     const { system_prompt, user_prompt } = await getPrompts();
-    const formatted_user_prompt = formatUserPrompt(user_prompt, req.body as GenerateStructuredMessageRequest);
+    const { 
+      system_prompt: formatted_system_prompt, 
+      user_prompt: formatted_user_prompt 
+    } = formatUserAndSystemPrompts(
+      system_prompt, 
+      user_prompt, 
+      req.body as GenerateStructuredMessageRequest
+    );
     log.info('Prompts loaded and formatted', { customer_user_id });
 
     // 3. Generate message
-    const generated_message = await generateMessageWithAI(system_prompt, formatted_user_prompt);
+    const generated_message = await generateMessageWithAI(
+      formatted_system_prompt, 
+      formatted_user_prompt
+    );
     log.info('Message generated successfully', { customer_user_id });
 
     // 4. Log the interaction
-    const ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || (req.socket as any)?.remoteAddress;
+    const ip = req.headers['x-real-ip'] || 
+               req.headers['x-forwarded-for'] || 
+               (req.socket as any)?.remoteAddress;
     const user_agent = req.headers['user-agent'];
-    const log_entry = createLogEntry(formatted_user_prompt, generated_message, customer_user_id, user_agent, ip);
+    const log_entry = createLogEntry(
+      formatted_user_prompt, 
+      generated_message, 
+      customer_user_id, 
+      user_agent, 
+      ip
+    );
     await logMessage(log_entry);
     log.info('Message logged to database', { customer_user_id });
 
     // 5. Respond
     log.info('Request completed successfully', { customer_user_id });
-    return res.status(200).json({
-      success: true,
-      input_prompt: formatted_user_prompt,
-      generated_message
-    } as MessageGenerationResponse);
+    return sendSuccessResponse<MessageGenerationResponse>(
+      res,
+      {
+        system_prompt: formatted_system_prompt,
+        input_prompt: formatted_user_prompt,
+        generated_message
+      }
+    );
 
   } catch (error: any) {
     const status_code = error.message.includes('subscription') ? 403 : 500;
