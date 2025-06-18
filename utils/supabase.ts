@@ -48,7 +48,6 @@ export function createLogEntry(
   ip: string,
 ): MessageLog {
   return {
-    input_prompt: user_prompt,
     prompt: {
       system_prompt,
       user_prompt,
