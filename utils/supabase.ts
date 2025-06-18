@@ -40,6 +40,7 @@ export async function logMessage(logEntry: MessageLog): Promise<void> {
 }
 
 export function createLogEntry(
+  system_prompt: string,
   user_prompt: string,
   generated_message: string,
   customer_user_id: string,
@@ -48,6 +49,10 @@ export function createLogEntry(
 ): MessageLog {
   return {
     input_prompt: user_prompt,
+    prompt: {
+      system_prompt,
+      user_prompt,
+    },
     generated_message,
     ip,
     user_agent,

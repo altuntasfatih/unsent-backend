@@ -91,4 +91,5 @@ export type MessageLog = {
   generated_message: string;
   ip?: string | null;
   user_agent?: string | null;
+  prompt: Record<string, any>;
 }; 

@@ -104,6 +104,7 @@ async function handler(req: any, res: any) {
                (req.socket as any)?.remoteAddress;
     const user_agent = req.headers['user-agent'];
     const log_entry = createLogEntry(
+      formatted_system_prompt,
       formatted_user_prompt, 
       generated_message, 
       customer_user_id, 

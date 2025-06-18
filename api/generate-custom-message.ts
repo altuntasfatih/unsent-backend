@@ -80,7 +80,7 @@ async function handler(req: any, res: any) {
     // 4. Log the interaction
     const ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || (req.socket as any)?.remoteAddress;
     const user_agent = req.headers['user-agent'];
-    const log_entry = createLogEntry(formatted_user_prompt, generated_message, customer_user_id, user_agent, ip);
+    const log_entry = createLogEntry(formatted_system_prompt, formatted_user_prompt, generated_message, customer_user_id, user_agent, ip);
     await logMessage(log_entry);
     log.info('Message logged to database', { customer_user_id });
 
