@@ -55,7 +55,7 @@ export interface GetSubscriptionResponse extends BaseResponse {
 }
 
 export interface MessageGenerationResponse extends BaseResponse {
-  input_prompt: string;
+  user_prompt: string;
   system_prompt: string;
   generated_message: string;
 }
@@ -87,7 +87,6 @@ export type Subscription = {
 export type MessageLog = {
   id?: number;
   customer_user_id: string;
-  input_prompt: string;
   generated_message: string;
   ip?: string | null;
   user_agent?: string | null;
