@@ -90,7 +90,7 @@ async function handler(req: any, res: any) {
       res,
       {
         system_prompt: formatted_system_prompt,
-        user_prompt: formatted_user_prompt,
+        input_prompt: formatted_user_prompt,
         generated_message
       }
     );

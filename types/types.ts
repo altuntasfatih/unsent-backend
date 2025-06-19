@@ -55,7 +55,7 @@ export interface GetSubscriptionResponse extends BaseResponse {
 }
 
 export interface MessageGenerationResponse extends BaseResponse {
-  user_prompt: string;
+  input_prompt: string;
   system_prompt: string;
   generated_message: string;
 }
